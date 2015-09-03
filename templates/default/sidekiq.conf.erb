@@ -1,38 +1,58 @@
-# This example config should work with Ubuntu 12.04+.  It
-# allows you to manage Sidekiq instances with
+# /etc/init/sidekiq.conf - Sidekiq config
+
+# Based on:
+# https://github.com/mperham/sidekiq/tree/master/examples/upstart
+#
+# This example config should work with Ubuntu 12.04+.
+# It allows you to manage multiple Sidekiq instances with
 # Upstart, Ubuntu's native service management tool.
 #
-# NOTE: This is heavily inspired by Sidekiq's example sidekiq.conf
+# See sidekiq-workers.conf for how to manage all Sidekiq instances at once.
 #
-# Save this config as /etc/init/sidekiq-APPNAME.conf then mange sidekiq with:
-#   sudo start sidekiq-<%= @app_name %>
-#   sudo stop sidekiq-<%= @app_name %>
-#   sudo status sidekiq-<%= @app_name %>
+# Save this config as /etc/init/sidekiq.conf then manage sidekiq with:
+#   sudo start sidekiq-<%= @app_name %> index=0
+#   sudo stop sidekiq-<%= @app_name %> index=0
+#   sudo status sidekiq-<%= @app_name %> index=0
+#
+# Hack Upstart's reload command to 'quiet' Sidekiq:
+#
+#   sudo reload sidekiq-<%= @app_name %> index=0
 #
 # or use the service command:
 #   sudo service sidekiq-<%= @app_name %> {start,stop,restart,status}
+#
+# This script is not meant to start on bootup, sidekiq-workers.conf
+# will start all sidekiq instances explicitly when it starts.
+#
+# Upstart automatically logs to:
+# /var/log/upstart/sidekiq-<%= @app_name %>-$index.log
+#
 
-description "Sidekiq Upstart process"
+description "Sidekiq Background Worker"
 
-start on started network-services
-stop on stopping network-services
-
-# change to match your deployment user
 setuid <%= @user %>
 setgid <%= @group %>
 
 respawn
 respawn limit 3 30
 
-# TERM and USR1 are sent by sidekiqctl when stopping sidekiq.  Without declaring these as normal exit codes, it just respawns.
-normal exit 0 TERM USR1
+# TERM is sent by sidekiqctl when stopping sidekiq. Without declaring these
+# as normal exit codes, it just respawns.
+normal exit 0 TERM
+
+# Older versions of Upstart might not support the reload command and need
+# this commented out.
+reload signal USR1
+
+instance $index
 
 chdir "<%= @release_path %>"
 
-<% @env.each do |k,v| %>
-env <%= k %>=<%= (v || '').to_s.gsub('"', '\\"') %>
+# Include OpsWorks environment variables.
+<% @env.each do |key, value| %>
+env <%= key %>=<%= (value || '').to_s.gsub('"', '\\"') %>
 <% end %>
 
 script
-  exec <%= @start_command %>
+  exec <%= @start_command.gsub('bundle exec sidekiq', 'bundle exec sidekiq -i ${index}') %>
 end script
