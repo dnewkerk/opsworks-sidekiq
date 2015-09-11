@@ -9,12 +9,12 @@
 #
 # See sidekiq.conf for how to manage a single Sidekiq instance.
 #
-# Use "stop sidekiq-workers-<%= @app_name %>" to stop all instances.
-# Use "start sidekiq-workers-<%= @app_name %>" to start all instances.
-# Use "restart sidekiq-workers-<%= @app_name %>" to restart all instances.
+# Use "stop sidekiq-workers" to stop all instances.
+# Use "start sidekiq-workers" to start all instances.
+# Use "restart sidekiq-workers" to restart all instances.
 #
 # Upstart automatically logs to:
-# /var/log/upstart/sidekiq-workers-<%= @app_name %>.log
+# /var/log/upstart/sidekiq-workers.log
 #
 
 description "Manages a set of Sidekiq processes"
@@ -29,13 +29,13 @@ env NUM_WORKERS=<%= @number_of_workers %>
 pre-start script
   for i in `seq 1 ${NUM_WORKERS}`
   do
-    start sidekiq-<%= @app_name %> index=$i
+    start sidekiq index=$i
   done
 end script
 
 post-stop script
   for i in `seq 1 ${NUM_WORKERS}`
   do
-    stop sidekiq-<%= @app_name %> index=$i
+    stop sidekiq index=$i
   done
 end script

@@ -10,22 +10,22 @@
 # See sidekiq-workers.conf for how to manage all Sidekiq instances at once.
 #
 # Save this config as /etc/init/sidekiq.conf then manage sidekiq with:
-#   sudo start sidekiq-<%= @app_name %> index=0
-#   sudo stop sidekiq-<%= @app_name %> index=0
-#   sudo status sidekiq-<%= @app_name %> index=0
+#   sudo start sidekiq index=0
+#   sudo stop sidekiq index=0
+#   sudo status sidekiq index=0
 #
 # Hack Upstart's reload command to 'quiet' Sidekiq:
 #
-#   sudo reload sidekiq-<%= @app_name %> index=0
+#   sudo reload sidekiq index=0
 #
 # or use the service command:
-#   sudo service sidekiq-<%= @app_name %> {start,stop,restart,status}
+#   sudo service sidekiq {start,stop,restart,status}
 #
 # This script is not meant to start on bootup, sidekiq-workers.conf
 # will start all sidekiq instances explicitly when it starts.
 #
 # Upstart automatically logs to:
-# /var/log/upstart/sidekiq-<%= @app_name %>-$index.log
+# /var/log/upstart/sidekiq-$index.log
 #
 
 description "Sidekiq Background Worker"

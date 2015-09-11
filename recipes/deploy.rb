@@ -13,25 +13,23 @@ node[:deploy].each do |application, deploy|
     env = deploy[:environment_variables] || {}
 
     template 'setup sidekiq-workers.conf' do
-      path   "/etc/init/sidekiq-workers-#{application}.conf"
+      path   "/etc/init/sidekiq-workers.conf"
       source 'sidekiq-workers.conf.erb'
       owner  'root'
       group  'root'
       mode   '0644'
       variables({
-        app_name: application,
         number_of_workers: number_of_workers
       })
     end
 
     template 'setup sidekiq.conf' do
-      path   "/etc/init/sidekiq-#{application}.conf"
+      path   "/etc/init/sidekiq.conf"
       source 'sidekiq.conf.erb'
       owner  'root'
       group  'root'
       mode   '0644'
       variables({
-        app_name: application,
         user: deploy[:user],
         group: deploy[:group],
         release_path: release_path,
@@ -40,7 +38,7 @@ node[:deploy].each do |application, deploy|
       })
     end
 
-    service "sidekiq-workers-#{application}" do
+    service "sidekiq-workers" do
       provider Chef::Provider::Service::Upstart
       supports stop: true, start: true, restart: true, status: true
     end
@@ -49,7 +47,7 @@ node[:deploy].each do |application, deploy|
     # need to be reloaded.
     bash 'restart_sidekiq' do
       code "echo noop"
-      notifies :restart, "service[sidekiq-workers-#{application}]"
+      notifies :restart, "service[sidekiq-workers]"
     end
   end
 end
